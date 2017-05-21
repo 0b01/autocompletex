@@ -1,17 +1,25 @@
 defmodule AutocompletexHttpTest do
   use ExUnit.Case
-  doctest Autocompletex
-  import Autocompletex.Worker
+  use Plug.Test
+  alias Autocompletex.Web.Lexicographic
+ 
+  @opts Lexicographic.init([])
 
-  setup do
-    {:ok, conn} = Redix.start_link
-    {:ok, worker} = start_link(conn)
-    {:ok, worker: worker, redis: conn} 
+  test "returns :ok" do
+    conn = conn(:get, "/", "")
+           |> Lexicographic.call(@opts)
+
+    assert conn.state == :sent
+    assert conn.status == 200
   end
 
-  test "insert a prefix string", state do
-    %{worker: worker, redis: conn} = state
+  test "returns 404" do
+    conn = conn(:get, "/missing", "")
+           |> Lexicographic.call(@opts)
+
+    assert conn.state == :sent
+    assert conn.status == 404
   end
-    
+
 
 end

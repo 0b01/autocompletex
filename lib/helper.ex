@@ -1,6 +1,16 @@
 defmodule Autocompletex.Helper do
-  def prefixes l do
-    pre = case l do
+  def prefixes_lexicographic l do
+    l |> prefixes |> List.flatten |> Enum.map(fn w -> 
+      if Enum.member?(List.flatten([l]), w) do w <> "*" else w end 
+    end)
+  end
+
+  def prefixes_predictive l do
+    l |> prefixes |> List.flatten 
+  end
+
+  defp prefixes l do
+    case l do
       [h|r] -> 
         [(prefixes h) | (prefixes r)]
       [] ->
@@ -14,9 +24,5 @@ defmodule Autocompletex.Helper do
               |> Enum.join("")
             end)
     end
-
-    pre |> List.flatten |> Enum.map(fn w -> 
-      if Enum.member?(List.flatten([l]), w) do w <> "*" else w end 
-    end)
   end
 end

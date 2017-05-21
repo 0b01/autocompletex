@@ -1,4 +1,4 @@
-defmodule Autocompletex.Web do  
+defmodule Autocompletex.Web.Predictive do  
   use Plug.Router
   require Logger
   import Plug.Conn
@@ -7,20 +7,14 @@ defmodule Autocompletex.Web do
   plug :match
   plug :dispatch
 
-  def init(options) do
-    {:ok, conn} = Redix.start_link
-    {:ok, worker} = Autocompletex.Worker.start_link(conn, Autocompletex.Worker)
-    options
-  end
-
-  def start_link({:port, port}) do
-    {:ok, _} = Plug.Adapters.Cowboy.http Autocompletex.Web, [], port: port
+  get "/" do
+    conn |> send_resp(200, "predictive - :ok") |> halt
   end
 
   get "/add" do
     conn = conn |> fetch_query_params
     %{"term" => term} = conn.params
-    Autocompletex.Worker.upsert(Autocompletex.Worker, [term])
+    Autocompletex.Predictive.upsert(Autocompletex.Predictive, [term])
     conn
     |> send_resp(200, Poison.encode!(term))
     |> halt
@@ -29,7 +23,7 @@ defmodule Autocompletex.Web do
   get "/complete" do
     conn = conn |> fetch_query_params
     %{"term" => term} = conn.params
-    {:ok, result} = Autocompletex.Worker.complete(Autocompletex.Worker, [term])
+    {:ok, result} = Autocompletex.Predictive.complete(Autocompletex.Predictive, [term])
     conn
     |> send_resp(200, Poison.encode!(result))
     |> halt

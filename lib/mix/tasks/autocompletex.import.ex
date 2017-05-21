@@ -10,8 +10,8 @@ defmodule Mix.Tasks.Autocompletex.Import do
 		# |> Enum.map(&(System.cmd("curl", ["localhost:3000/add?term=" <> &1])))
 
 		{:ok, redis} = Redix.start_link
-		{:ok, pid} = Autocompletex.Worker.start_link(redis, :ac)
+		{:ok, _} = Autocompletex.Lexicographic.start_link(redis, :ac)
 		terms
-		|> Enum.map(&(Autocompletex.Worker.upsert(:ac, [&1])))
+		|> Enum.map(&(Autocompletex.Lexicographic.upsert(:ac, [&1])))
 	end
 end
