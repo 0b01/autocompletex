@@ -23,12 +23,11 @@ defmodule AutocompletexTest do
 
   test "ping pong for redis", state do
     %{worker: worker} = state
-
     assert {:ok, "PONG"} = Autocompletex.Worker.ping(worker)
   end
 
   test "generate prefix" do
-  assert ["test"] |> Autocompletex.Helper.prefixes == ["t", "te", "tes", "test*"]
+    assert ["test"] |> Autocompletex.Helper.prefixes == ["t", "te", "tes", "test*"]
   end
 
   test "generate prefixes from a list of string, flattened" do
@@ -36,21 +35,5 @@ defmodule AutocompletexTest do
       ["t", "te", "tes", "test*", "e", "ex", "exa", "exam", "examp", "exampl", "example*"]
   end
 
-  test "insert a prefix string", state do
-    %{worker: worker, redis: conn} = state
-
-    assert :ok == Autocompletex.Worker.insert(worker, ~w(test example))
-
-    prefixes = Autocompletex.Helper.prefixes(~w(test example))
-
-    prefixes
-      |> Enum.map(
-        fn prefix -> 
-          case Redix.command(conn, ~w(ZRANK ZSET) ++ [prefix]) do
-            {:ok, w} -> assert w < prefixes |> length
-            {:error, err} -> assert false
-          end
-        end)
-  end
 
 end
