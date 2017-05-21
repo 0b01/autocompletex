@@ -1,4 +1,5 @@
 # Autocompletex
+redis autocomplete searchbox in elixir
 
 **TODO: Add description**
 
