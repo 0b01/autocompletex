@@ -1,0 +1,325 @@
+init
+
+# --------------
+# Please enter the commit message for your changes. Everything below
+# this paragraph is ignored, and an empty message aborts the commit.
+# Just close the window to accept your message.
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..b6012c7
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,20 @@
++# The directory Mix will write compiled artifacts to.
++/_build
++
++# If you run "mix test --cover", coverage assets end up here.
++/cover
++
++# The directory Mix downloads your dependencies sources to.
++/deps
++
++# Where 3rd-party dependencies like ExDoc output generated docs.
++/doc
++
++# Ignore .fetch files in case you like to edit your project deps locally.
++/.fetch
++
++# If the VM crashes, it generates a dump, let's ignore it too.
++erl_crash.dump
++
++# Also ignore archive artifacts (built via "mix archive.build").
++*.ez
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..4355c04
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,19 @@
++# Autocompletex
++
++**TODO: Add description**
++
++## Installation
++
++If [available in Hex](https://hex.pm/docs/publish), the package can be installed
++by adding `autocompletex` to your list of dependencies in `mix.exs`:
++
++```elixir
++def deps do
++  [{:autocompletex, "~> 0.1.0"}]
++end
++```
++
++Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
++and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
++be found at [https://hexdocs.pm/autocompletex](https://hexdocs.pm/autocompletex).
++
+diff --git a/config/config.exs b/config/config.exs
+new file mode 100644
+index 0000000..63084d4
+--- /dev/null
++++ b/config/config.exs
+@@ -0,0 +1,26 @@
++# This file is responsible for configuring your application
++# and its dependencies with the aid of the Mix.Config module.
++use Mix.Config
++
++# This configuration is loaded before any dependency and is restricted
++# to this project. If another project depends on this project, this
++# file won't be loaded nor affect the parent project. For this reason,
++# if you want to provide default values for your application for
++# 3rd-party users, it should be done in your "mix.exs" file.
++
++# And access this configuration in your application as:
++#
++#     Application.get_env(:autocompletex, :key)
++#
++# Or configure a 3rd-party app:
++#
++#     config :logger, level: :info
++#
++
++config :autocompletex,
++  redis_host: "localhost",
++  redis_port: 6379,
++  redis_string: nil,
++  http_server: false,
++  debug: false
++
+diff --git a/lib/autocompletex.ex b/lib/autocompletex.ex
+new file mode 100644
+index 0000000..a81f31f
+--- /dev/null
++++ b/lib/autocompletex.ex
+@@ -0,0 +1,31 @@
++defmodule Autocompletex do
++  use Application
++  @name :autocompletex
++  def start do
++    import Supervisor.Spec, warn: false
++
++    children = if config(:http_server, true), do: [
++      supervisor(Autocompletex.Worker.Supervisor, [:redix]),
++      supervisor(Autocompletex.HTTP.Supervisor, [port: get_port()]),
++      worker(Redix, [[], [name: :redix]]),
++    ], else: [
++      supervisor(Autocompletex.Worker.Supervisor, [:redix]),
++      worker(Redix, [[], [name: :redix]])
++    ]
++
++    if config(:debug, false), do: :observer.start
++
++    Supervisor.start_link(children, [name: @name, strategy: :one_for_one])
++ 
++  end
++
++  def get_port do
++    config(:http_port, 3000)
++  end
++
++
++  defp config(key, default \\ nil) do
++    Application.get_env(:autocompletex, key, default)
++  end
++
++end
+\ No newline at end of file
+diff --git a/lib/helper.ex b/lib/helper.ex
+new file mode 100644
+index 0000000..3bd6787
+--- /dev/null
++++ b/lib/helper.ex
+@@ -0,0 +1,19 @@
++defmodule Autocompletex.Helper do
++  def prefixes l do
++    pre = case l do
++      [h|r] -> 
++        [(prefixes h) | (prefixes r)]
++      [] ->
++        []
++      _ -> # binary string
++        charlist = l <> "*" |> String.graphemes
++        Enum.scan(charlist, [], &([&1 | &2] ))
++          |> Enum.map(fn l -> 
++            l 
++              |> Enum.reverse 
++              |> Enum.join("")
++            end)
++    end
++    pre |> List.flatten
++  end
++end
+\ No newline at end of file
+diff --git a/lib/worker/supervisor.ex b/lib/worker/supervisor.ex
+new file mode 100644
+index 0000000..b463f74
+--- /dev/null
++++ b/lib/worker/supervisor.ex
+@@ -0,0 +1,18 @@
++defmodule Autocompletex.Worker.Supervisor do
++  use Supervisor
++
++  @name __MODULE__
++
++  def start_link(redis, name \\ @name) do
++    Supervisor.start_link(__MODULE__, [redis], [name: name])
++  end
++
++  def init(redis) do
++  	
++    children = [
++      worker(Autocompletex.Worker, [redis], restart: :transient)
++    ]
++
++    supervise(children, strategy: :simple_one_for_one)
++  end
++end
+\ No newline at end of file
+diff --git a/lib/worker/worker.ex b/lib/worker/worker.ex
+new file mode 100644
+index 0000000..ba4ab0e
+--- /dev/null
++++ b/lib/worker/worker.ex
+@@ -0,0 +1,36 @@
++defmodule Autocompletex.Worker do
++
++  use GenServer
++
++  def start_link(redis, opts \\ []) do
++    GenServer.start_link(__MODULE__, redis, opts)
++  end
++
++
++  def ping(pid) do
++    GenServer.call(pid, {:ping})
++  end
++
++  def insert(pid, quoted_words) do
++  	GenServer.call(pid, {:insert, quoted_words})
++  end
++
++  # Callbacks
++
++  def init(redis) do
++    {:ok, redis}
++  end
++
++  def handle_call({:insert, quoted_words}, _from, redis) do
++  	quoted_words
++      |> Autocompletex.Helper.prefixes
++      |> Enum.map(fn prefix -> Redix.command(redis, ~w(ZADD ZSET 0) ++ [prefix]) end)
++    {:reply, :ok, redis}
++  end
++
++  def handle_call({:ping}, _from, redis) do
++  	{:ok, pong} = Redix.command(redis, ~w(PING))
++  	{:reply, {:ok, pong}, redis}
++  end
++
++end
+\ No newline at end of file
+diff --git a/mix.exs b/mix.exs
+new file mode 100644
+index 0000000..68d43d9
+--- /dev/null
++++ b/mix.exs
+@@ -0,0 +1,20 @@
++defmodule Autocompletex.Mixfile do
++  use Mix.Project
++
++  def project do
++    [app: :autocompletex,
++     version: "0.1.0",
++     elixir: "~> 1.4",
++     build_embedded: Mix.env == :prod,
++     start_permanent: Mix.env == :prod,
++     deps: deps()]
++  end
++
++  def application do
++    [extra_applications: [:logger, :redix]]
++  end
++
++  defp deps do
++    [{:redix, ">= 0.0.0"}]
++  end
++end
+diff --git a/mix.lock b/mix.lock
+new file mode 100644
+index 0000000..1438cc8
+--- /dev/null
++++ b/mix.lock
+@@ -0,0 +1,2 @@
++%{"connection": {:hex, :connection, "1.0.4", "a1cae72211f0eef17705aaededacac3eb30e6625b04a6117c1b2db6ace7d5976", [:mix], [], "hexpm"},
++  "redix": {:hex, :redix, "0.6.0", "b0ee9b66cd15b5fe72deeaba285e90b65dbf069b7be67f610d32d4304226b1b2", [:mix], [{:connection, "~> 1.0", [hex: :connection, repo: "hexpm", optional: false]}], "hexpm"}}
+diff --git a/test/autocompletex_test.exs b/test/autocompletex_test.exs
+new file mode 100644
+index 0000000..cd9003a
+--- /dev/null
++++ b/test/autocompletex_test.exs
+@@ -0,0 +1,57 @@
++defmodule AutocompletexTest do
++  use ExUnit.Case
++  doctest Autocompletex
++
++  setup do
++    {:ok, conn} = Redix.start_link
++    {:ok, worker1} = Autocompletex.Worker.start_link(conn)
++    {:ok, worker: worker1, redis: conn} 
++  end
++
++  test "redis connection", state do
++    %{redis: conn} = state
++    Autocompletex.start()
++    Redix.command(conn, ~w(SET test ok) )
++    case Redix.command(conn, ~w(GET test) ) do 
++      {:ok, word} ->
++        assert word == "ok"
++      {:error, err} -> 
++        IO.puts err
++        assert false
++    end
++  end
++
++  test "ping pong for redis", state do
++    %{worker: worker} = state
++
++    assert {:ok, "PONG"} = Autocompletex.Worker.ping(worker)
++  end
++
++  test "generate prefix" do
++  assert "test" |> Autocompletex.Helper.prefixes == ["t", "te", "tes", "test"]
++  assert ["test"] |> Autocompletex.Helper.prefixes == ["t", "te", "tes", "test"]
++  end
++
++  test "generate prefixes from a list of string, flattened" do
++    assert Autocompletex.Helper.prefixes(~w(test example)) == 
++      ["t", "te", "tes", "test", "e", "ex", "exa", "exam", "examp", "exampl", "example"]
++  end
++
++  test "insert a prefix string", state do
++    %{worker: worker, redis: conn} = state
++
++    assert :ok == Autocompletex.Worker.insert(worker, ~w(test example))
++
++    prefixes = Autocompletex.Helper.prefixes(~w(test example))
++
++    prefixes
++    |> Enum.map(
++      fn prefix -> 
++        case Redix.command(conn, ~w(ZRANK ZSET) ++ [prefix]) do
++          {:ok, w} -> assert w < prefixes |> length
++          {:error, err} -> assert false
++        end
++      end)
++  end
++
++end
+diff --git a/test/test_helper.exs b/test/test_helper.exs
+new file mode 100644
+index 0000000..869559e
+--- /dev/null
++++ b/test/test_helper.exs
+@@ -0,0 +1 @@
++ExUnit.start()

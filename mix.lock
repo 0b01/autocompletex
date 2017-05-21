@@ -1,0 +1,2 @@
+%{"connection": {:hex, :connection, "1.0.4", "a1cae72211f0eef17705aaededacac3eb30e6625b04a6117c1b2db6ace7d5976", [:mix], [], "hexpm"},
+  "redix": {:hex, :redix, "0.6.0", "b0ee9b66cd15b5fe72deeaba285e90b65dbf069b7be67f610d32d4304226b1b2", [:mix], [{:connection, "~> 1.0", [hex: :connection, repo: "hexpm", optional: false]}], "hexpm"}}
