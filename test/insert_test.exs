@@ -32,8 +32,8 @@ defmodule AutocompletexInsertTest do
     :ok = incr(worker, "test")
     pscore_after = prefix_score conn, ["test"]
     assert Enum.zip(pscore_after, before)
-      |> Enum.map(fn {b,a} -> String.to_integer(b) - String.to_integer(a) == 1 end) 
-      |> Enum.all?
+    |> Enum.map(fn {b,a} -> String.to_integer(b) - String.to_integer(a) == 1 end) 
+    |> Enum.all?
     Redix.command(conn, ["FLUSHALL"])
   end
 
@@ -53,21 +53,21 @@ defmodule AutocompletexInsertTest do
     :ok = upsert(worker, ["test", "example"])
     pscore_after = prefix_score conn, ["test"]
     assert Enum.zip(pscore_after, before)
-      |> Enum.map(fn {b,a} -> String.to_integer(b) - String.to_integer(a) == 1 end) 
-      |> Enum.all?
+    |> Enum.map(fn {b,a} -> String.to_integer(b) - String.to_integer(a) == 1 end) 
+    |> Enum.all?
 
     :ok = upsert(worker, ["test", "example"])
     pscore_after_2 = prefix_score conn, ["example"]
     assert Enum.zip(pscore_after_2, pscore_after)
-      |> Enum.all?(fn {b,a} -> String.to_integer(b) - String.to_integer(a) == 1 end) 
+    |> Enum.all?(fn {b,a} -> String.to_integer(b) - String.to_integer(a) == 1 end) 
     assert pscore_after_2 |> Enum.all?(&(&1 == "2"))
     Redix.command(conn, ["FLUSHALL"])
   end
 
   defp test_prefix_exists? conn, prefixes do
     prefixes
-      |> Autocompletex.Helper.prefixes
-      |> Enum.map(
+    |> Autocompletex.Helper.prefixes
+    |> Enum.map(
         fn prefix -> 
           case Redix.command(conn, ~w(ZRANK ZSET) ++ [prefix]) do
             {:ok, w} ->
@@ -81,16 +81,16 @@ defmodule AutocompletexInsertTest do
 
   defp prefix_score conn, prefixes do
     prefixes
-      |> Autocompletex.Helper.prefixes
-      |> Enum.map(fn prefix -> 
-          case Redix.command(conn, ["ZSCORE", "ZSET", prefix]) do
-            {:ok, msg} ->
-              msg
-            {:error, err} ->
-              IO.inspect err
-              assert false
-           end
-         end)
+    |> Autocompletex.Helper.prefixes
+    |> Enum.map(fn prefix -> 
+        case Redix.command(conn, ["ZSCORE", "ZSET", prefix]) do
+          {:ok, msg} ->
+            msg
+          {:error, err} ->
+            IO.inspect err
+            assert false
+         end
+       end)
   end
 
 end

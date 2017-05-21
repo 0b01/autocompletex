@@ -21,6 +21,6 @@ config :autocompletex,
   redis_host: "localhost",
   redis_port: 6379,
   redis_string: nil,
-  http_server: false,
+  http_server: true,
   debug: false
 

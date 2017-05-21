@@ -1,9 +1,8 @@
 defmodule Autocompletex.Worker do
-
   use GenServer
 
-  def start_link(redis, opts \\ []) do
-    GenServer.start_link(__MODULE__, redis, opts)
+  def start_link(redis, name) do
+    GenServer.start_link(__MODULE__, redis, [name: name])
   end
 
   def ping(pid) do

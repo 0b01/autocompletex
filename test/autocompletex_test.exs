@@ -10,7 +10,7 @@ defmodule AutocompletexTest do
 
   test "redis connection", state do
     %{redis: conn} = state
-    Autocompletex.start()
+    Autocompletex.start([],[])
     Redix.command(conn, ~w(SET test ok) )
     case Redix.command(conn, ~w(GET test) ) do 
       {:ok, word} ->

@@ -1,16 +1,13 @@
 defmodule Autocompletex.Worker.Supervisor do
   use Supervisor
 
-  @name __MODULE__
-
-  def start_link(redis, name \\ @name) do
-    Supervisor.start_link(__MODULE__, [redis], [name: name])
+  def start_link(redis, name \\ nil) do
+    Supervisor.start_link(__MODULE__, [redis], name: :worker_supervisor)
   end
 
   def init(redis) do
-  	
     children = [
-      worker(Autocompletex.Worker, [redis], restart: :transient)
+      worker(Autocompletex.Worker, [redis])
     ]
 
     supervise(children, strategy: :simple_one_for_one)
