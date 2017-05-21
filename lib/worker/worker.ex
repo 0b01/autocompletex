@@ -22,7 +22,7 @@ defmodule Autocompletex.Worker do
   end
 
   def handle_call({:insert, quoted_words}, _from, redis) do
-  	quoted_words
+    quoted_words
       |> Autocompletex.Helper.prefixes
       |> Enum.map(fn prefix -> Redix.command(redis, ~w(ZADD ZSET 0) ++ [prefix]) end)
     {:reply, :ok, redis}

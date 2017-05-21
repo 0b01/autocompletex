@@ -28,13 +28,12 @@ defmodule AutocompletexTest do
   end
 
   test "generate prefix" do
-  assert "test" |> Autocompletex.Helper.prefixes == ["t", "te", "tes", "test"]
-  assert ["test"] |> Autocompletex.Helper.prefixes == ["t", "te", "tes", "test"]
+  assert ["test"] |> Autocompletex.Helper.prefixes == ["t", "te", "tes", "test*"]
   end
 
   test "generate prefixes from a list of string, flattened" do
     assert Autocompletex.Helper.prefixes(~w(test example)) == 
-      ["t", "te", "tes", "test", "e", "ex", "exa", "exam", "examp", "exampl", "example"]
+      ["t", "te", "tes", "test*", "e", "ex", "exa", "exam", "examp", "exampl", "example*"]
   end
 
   test "insert a prefix string", state do
@@ -45,13 +44,13 @@ defmodule AutocompletexTest do
     prefixes = Autocompletex.Helper.prefixes(~w(test example))
 
     prefixes
-    |> Enum.map(
-      fn prefix -> 
-        case Redix.command(conn, ~w(ZRANK ZSET) ++ [prefix]) do
-          {:ok, w} -> assert w < prefixes |> length
-          {:error, err} -> assert false
-        end
-      end)
+      |> Enum.map(
+        fn prefix -> 
+          case Redix.command(conn, ~w(ZRANK ZSET) ++ [prefix]) do
+            {:ok, w} -> assert w < prefixes |> length
+            {:error, err} -> assert false
+          end
+        end)
   end
 
 end

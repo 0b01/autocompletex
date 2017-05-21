@@ -6,7 +6,7 @@ defmodule Autocompletex.Helper do
       [] ->
         []
       _ -> # binary string
-        charlist = l <> "*" |> String.graphemes
+        charlist = l |> String.graphemes
         Enum.scan(charlist, [], &([&1 | &2] ))
           |> Enum.map(fn l -> 
             l 
@@ -14,6 +14,9 @@ defmodule Autocompletex.Helper do
               |> Enum.join("")
             end)
     end
-    pre |> List.flatten
+
+    pre |> List.flatten |> Enum.map(fn w -> 
+      if Enum.member?(List.flatten([l]), w) do w <> "*" else w end 
+    end)
   end
 end
