@@ -11,10 +11,14 @@ defmodule Autocompletex.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger, :redix]]
+    [extra_applications: [:logger, :redix, :cowboy, :plug]]
   end
 
   defp deps do
-    [{:redix, ">= 0.0.0"}]
+    [
+      {:redix, ">= 0.0.0"},
+      {:cowboy, "~> 1.0.3"},
+      {:plug, "~> 1.0"}
+    ]
   end
 end
