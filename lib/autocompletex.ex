@@ -3,25 +3,26 @@ defmodule Autocompletex do
   @name :autocompletex
   def start _type, _args do
     import Supervisor.Spec, warn: false
+    redix = worker(Redix, [[host: config(:redis_host, "localhost"), port: config(:redis_port, 6379)], [name: :autocomplete_redis]])
     supervisor = 
       case config(:type, :lexicographic) do
         :lexicographic ->
-          supervisor(Autocompletex.Lexicographic.Supervisor, [:redix])
+          supervisor(Autocompletex.Lexicographic.Supervisor, [:autocomplete_redis])
         :predictive ->
-          supervisor(Autocompletex.Predictive.Supervisor, [:redix])
+          supervisor(Autocompletex.Predictive.Supervisor, [:autocomplete_redis])
       end
 
     children =
 
       if config(:http_server, true) do
         [
-          worker(Redix, [[], [name: :redix]]),
+          redix,
           worker(Autocompletex.Web, [port: config(:http_port, 3000)]),
           supervisor
         ]
       else 
         [
-          worker(Redix, [[], [name: :redix]]),
+          redix,
           supervisor
         ]
       end

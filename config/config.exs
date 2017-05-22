@@ -22,6 +22,7 @@ config :autocompletex,
   redis_port: 6379,
   redis_string: nil,
   http_server: true,
+  http_port: 3000,
   debug: false,
   # type: :lexicographic
   type: :predictive
