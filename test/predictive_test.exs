@@ -4,9 +4,17 @@ defmodule AutocompletexPredictiveTest do
   import Autocompletex.Predictive
 
   setup do
-    {:ok, conn} = Redix.start_link
-    {:ok, worker} = start_link(conn, :ac)
-    {:ok, worker: worker, redis: conn} 
+    conn =
+      case Redix.start_link do
+        {:ok, conn} -> conn
+        _           -> nil
+      end
+    worker =
+      case start_link(conn, :ac) do
+        {:ok, worker} -> worker
+        _             -> nil
+      end
+    {:ok, worker: worker, redis: conn}
   end
 
   test "insert a prefix string", state do
@@ -40,7 +48,7 @@ defmodule AutocompletexPredictiveTest do
     after_score = get_score conn, ["test", "example"]
 
     Enum.zip(before_score, after_score)
-    |> Enum.map(fn {a,b} -> 
+    |> Enum.map(fn {a,b} ->
       Enum.zip(a,b)
       |> Enum.map(
         fn {a,b} -> String.to_integer(b) - String.to_integer(a) == 1 end)
@@ -53,10 +61,10 @@ defmodule AutocompletexPredictiveTest do
 
   defp get_score conn, terms do
     terms
-    |> Enum.map(fn term -> 
+    |> Enum.map(fn term ->
       term
       |> Autocompletex.Helper.prefixes_predictive
-      |> Enum.map(fn prefix -> 
+      |> Enum.map(fn prefix ->
           case Redix.command(conn, ["ZSCORE", prefix, term]) do
             {:ok, w} ->
               w
@@ -72,11 +80,11 @@ defmodule AutocompletexPredictiveTest do
     terms
     |> Autocompletex.Helper.prefixes_predictive
     |> Enum.map(
-        fn prefix -> 
+        fn prefix ->
           case Redix.command(conn, ["ZCARD", prefix]) do
             {:ok, w} ->
               assert w >= 0
-            {:error, err} -> 
+            {:error, err} ->
               IO.puts err
               assert false
           end
