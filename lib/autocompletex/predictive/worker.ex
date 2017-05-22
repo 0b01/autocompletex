@@ -31,11 +31,17 @@ defmodule Autocompletex.Predictive do
 
   def handle_call({:complete, prefix, rangelen}, _from, state) do
     %{:redis => redis} = state
-    case Redix.command(redis, ["ZCARD", prefix]) do
-      {:ok, "0"} ->
+
+    term = case prefix do
+      [t|h] -> t
+      t -> t
+    end
+
+    case Redix.command(redis, ["ZCARD", term]) do
+      {:ok, 0} ->
         {:reply, {:ok, []}, state}
       {:ok, _} -> 
-        case Redix.command(redis, ["ZRANGE", prefix, "0", rangelen]) do
+        case Redix.command(redis, ["ZREVRANGEBYSCORE", prefix, rangelen, "0"]) do
           {:ok, list} ->
             {:reply, {:ok, list}, state}
           {:error, err} ->

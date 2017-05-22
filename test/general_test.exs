@@ -18,6 +18,8 @@ defmodule AutocompletexTest do
         IO.puts err
         assert false
     end
+
+    {:ok, _} = Redix.command(conn, ~w(DEL test))
   end
 
   test "ping for redis", state do

@@ -58,8 +58,11 @@ defmodule AutocompletexPredictiveTest do
       |> Autocompletex.Helper.prefixes_predictive
       |> Enum.map(fn prefix -> 
           case Redix.command(conn, ["ZSCORE", prefix, term]) do
-            {:ok, w} -> w
-            {:error, err} -> assert false
+            {:ok, w} ->
+              w
+            {:error, err} ->
+              IO.puts err
+              assert false
           end
         end)
     end)

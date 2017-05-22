@@ -2,7 +2,7 @@ defmodule Autocompletex.Predictive.Supervisor do
   use Supervisor
 
   def start_link(redis) do
-    Supervisor.start_link(__MODULE__, [redis], name: __MODULE__)
+    Supervisor.start_link(__MODULE__, redis, name: __MODULE__)
   end
 
   def init(redis) do

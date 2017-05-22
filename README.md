@@ -18,3 +18,7 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/autocompletex](https://hexdocs.pm/autocompletex).
 
+
+    1. Google-like query prediction based on popularity. E.G. ne -> netflix, new york times 
+    2. Lexicographic. Sorted by alphabets.
+    You can run the server or include autocompletex in your project as a GenServer application.
