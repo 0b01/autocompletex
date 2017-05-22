@@ -33,7 +33,7 @@ defp application() do
 end
 ```
 
-Then, run mix deps.get in your shell to fetch the new dependency.
+Then, run `mix deps.get` in your shell to fetch the new dependency.
 
 
 ## Usage

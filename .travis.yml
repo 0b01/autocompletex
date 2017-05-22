@@ -11,3 +11,5 @@ services:
 
 script:
   - mix test --trace
+  - mix coveralls.travis
+
