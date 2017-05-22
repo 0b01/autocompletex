@@ -1,5 +1,6 @@
 # Autocompletex
 
+[![Build Status](https://travis-ci.org/rickyhan/autocompletex.svg?branch=master)](https://travis-ci.org/rickyhan/autocompletex)
 ![hex.pm](https://img.shields.io/hexpm/v/autocompletex.svg)
 
 Autocompletex is a low-latency plug-and-play autocomplete tool using Redis sorted set. Written in pure Elixir, it focuses on rapid prototyping using your existing stack: simply start a redis instance, and start_link a GenServer.
