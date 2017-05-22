@@ -29,7 +29,7 @@ Then add it to `applications`:
 
 ```elixir
 defp application() do
-  [applications: [:logger, :redix]]
+  [applications: [:logger, :autocompletex]]
 end
 ```
 
@@ -40,7 +40,7 @@ Then, run mix deps.get in your shell to fetch the new dependency.
 
 ### Overview
 
-Currently, two types of autocompletion is support:
+Currently, two types of autocompletion are supported:
 
 * Lexicographic
 * Predictive
@@ -61,11 +61,12 @@ To start a GenServer manually:
 # For Lexicographic:
 {:ok, conn} = Redix.start_link
 db = "testdb"
-{:ok, worker} = Autocompletex.Lexicographic.start_link(conn, db, Autocompletex)
+{:ok, worker} = Autocompletex.Lexicographic.start_link(conn, db, Autocompletex.Lexicographic)
 
 # For Predictive:
 {:ok, conn} = Redix.start_link
-{:ok, worker} = start_link(conn, :ac)
+db_prefix = "autocompletex"
+{:ok, worker} = Autocompletex.Predictive.start_link(conn, db_prefix, Autocompletex.Predictive)
 ```
 
 Alternatively, you can use it in a supervision tree.
@@ -112,11 +113,27 @@ There are two functions: `upsert` and `complete`.
 
 ## Misc
 
+### Import file into Redis
+
 If you have a list of user-generated search queries, you can use a mix task to index and provision the redis instance.
 
 Simply do:
 
-`mix autocompletex.import --filename [path/to/file] [--predictive]`
+```bash
+mix autocompletex.import --filename [path/to/file] [--predictive]
+```
+
+### Internals
+
+For predictive autocompletion, this tool will create keys `[dbname]:[prefixes]` as sorted sets. For example, for dbname `autocompletex`, word `test`:
+
+```
+autocompletex:t
+autocompletex:te
+autocompletex:tes
+```
+
+For lexicographic autocompletion, under sorted set `[dbname]`.
 
 ## Docs
 

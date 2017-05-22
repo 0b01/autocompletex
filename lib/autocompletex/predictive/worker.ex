@@ -1,8 +1,8 @@
 defmodule Autocompletex.Predictive do
   use GenServer
 
-  def start_link(redis, name) do
-    GenServer.start_link(__MODULE__, %{:redis => redis}, [name: name])
+  def start_link(redis, db_prefix \\ "autocompletex", name) do
+    GenServer.start_link(__MODULE__, %{:redis => redis, :db_prefix => db_prefix}, [name: name])
   end
 
   def ping(pid) do
@@ -30,18 +30,18 @@ defmodule Autocompletex.Predictive do
   end
 
   def handle_call({:complete, prefix, rangelen}, _from, state) do
-    %{:redis => redis} = state
+    %{:redis => redis, :db_prefix => db_prefix} = state
 
     term = case prefix do
       [t|h] -> t
       t -> t
     end
 
-    case Redix.command(redis, ["ZCARD", term]) do
+    case Redix.command(redis, ["ZCARD", db_prefix <> ":" <> term]) do
       {:ok, 0} ->
         {:reply, {:ok, []}, state}
       {:ok, _} -> 
-        case Redix.command(redis, ["ZREVRANGEBYSCORE", prefix, rangelen, "0"]) do
+        case Redix.command(redis, ["ZREVRANGEBYSCORE", db_prefix <> ":" <> prefix, rangelen, "0"]) do
           {:ok, list} ->
             {:reply, {:ok, list}, state}
           {:error, err} ->
@@ -53,15 +53,15 @@ defmodule Autocompletex.Predictive do
   end
 
   def handle_call({:upsert, terms}, _from, state) do
-    %{:redis => redis} = state
-    terms |> Enum.each(&insertp(&1, redis))
+    %{:redis => redis, :db_prefix => db_prefix} = state
+    terms |> Enum.each(&insertp(&1, redis, db_prefix))
     {:reply, :ok, state}
   end
 
-  defp insertp(term, redis) do
+  defp insertp(term, redis, db_prefix) do
     term
       |> Autocompletex.Helper.prefixes_predictive
-      |> Enum.map(fn prefix -> Redix.command(redis, ["ZINCRBY", prefix, "1", term]) end)
+      |> Enum.map(fn prefix -> Redix.command(redis, ["ZINCRBY", db_prefix <> ":" <> prefix, "1", term]) end)
     :ok
   end
 

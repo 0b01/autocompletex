@@ -4,28 +4,29 @@ defmodule AutocompletexPredictiveTest do
   import Autocompletex.Predictive
 
   setup do
+    db_prefix = "autocomplete"
     conn =
       case Redix.start_link do
         {:ok, conn} -> conn
         _           -> nil
       end
     worker =
-      case start_link(conn, :ac) do
+      case start_link(conn, db_prefix, :ac) do
         {:ok, worker} -> worker
         _             -> nil
       end
-    {:ok, worker: worker, redis: conn}
+    {:ok, worker: worker, db_prefix: db_prefix, redis: conn}
   end
 
   test "insert a prefix string", state do
-    %{worker: worker, redis: conn} = state
+    %{worker: worker, redis: conn, db_prefix: db_prefix} = state
     :ok = upsert(worker, ["test", "example"])
-    test_prefix_exists? conn, ["test", "example"]
+    test_prefix_exists? conn, ["test", "example"], db_prefix
     Redix.command(conn, ["FLUSHALL"])
   end
 
   test "autocomplete a prefix", state do
-    %{worker: worker, redis: conn} = state
+    %{worker: worker, redis: conn, db_prefix: db_prefix} = state
     :ok = upsert(worker, ["test", "example"])
     assert complete(worker, "te") == {:ok, ["test"]}
     assert complete(worker, "ex") == {:ok, ["example"]}
@@ -33,19 +34,19 @@ defmodule AutocompletexPredictiveTest do
   end
 
   test "upsert a term - insert", state do
-    %{worker: worker, redis: conn} = state
+    %{worker: worker, redis: conn, db_prefix: db_prefix} = state
     :ok = upsert(worker, ["test", "example"])
-    test_prefix_exists? conn, ["test", "example"]
+    test_prefix_exists? conn, ["test", "example"], db_prefix
     Redix.command(conn, ["FLUSHALL"])
   end
 
   test "upsert a term - incr", state do
-    %{worker: worker, redis: conn} = state
+    %{worker: worker, redis: conn, db_prefix: db_prefix} = state
 
     :ok = upsert(worker, ["test", "example"])
-    before_score = get_score conn, ["test", "example"]
+    before_score = get_score conn, ["test", "example"], db_prefix
     :ok = upsert(worker, ["test", "example"])
-    after_score = get_score conn, ["test", "example"]
+    after_score = get_score conn, ["test", "example"], db_prefix
 
     Enum.zip(before_score, after_score)
     |> Enum.map(fn {a,b} ->
@@ -59,13 +60,13 @@ defmodule AutocompletexPredictiveTest do
     Redix.command(conn, ["FLUSHALL"])
   end
 
-  defp get_score conn, terms do
+  defp get_score conn, terms, db_prefix do
     terms
     |> Enum.map(fn term ->
       term
       |> Autocompletex.Helper.prefixes_predictive
       |> Enum.map(fn prefix ->
-          case Redix.command(conn, ["ZSCORE", prefix, term]) do
+          case Redix.command(conn, ["ZSCORE", db_prefix <> ":" <> prefix, term]) do
             {:ok, w} ->
               w
             {:error, err} ->
@@ -76,12 +77,12 @@ defmodule AutocompletexPredictiveTest do
     end)
   end
 
-  defp test_prefix_exists? conn, terms do
+  defp test_prefix_exists? conn, terms, db_prefix do
     terms
     |> Autocompletex.Helper.prefixes_predictive
     |> Enum.map(
         fn prefix ->
-          case Redix.command(conn, ["ZCARD", prefix]) do
+          case Redix.command(conn, ["ZCARD", db_prefix <> prefix]) do
             {:ok, w} ->
               assert w >= 0
             {:error, err} ->
