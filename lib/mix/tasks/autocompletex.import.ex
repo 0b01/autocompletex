@@ -1,25 +1,38 @@
 defmodule Mix.Tasks.Autocompletex.Import do
-	use Mix.Task
+  use Mix.Task
 
-	def run opts do
-		
-		{[filename: fname, predictive: predictive], _, _} = OptionParser.parse(opts, switches: [filename: :string, predictive: :boolean])
+  def run opts do
+    {:ok, fname, predictive} =  
+      case OptionParser.parse(opts, switches: [filename: :string, predictive: :boolean]) do
+        {[filename: fname, predictive: _], _, _} -> 
+          {:ok, fname, true}
 
-		{:ok, lines} = File.read fname
-		terms = lines |> String.split("\n")
+        {[filename: fname], _, _} ->
+          {:ok, fname, false}
+        x ->
+          IO.puts "mix autocompletex.import --filename [path/to/file] [--predictive]"
+          {:error, "wrong format"}
+      end
 
-		{:ok, redis} = Redix.start_link
+    {:ok, lines} = File.read fname
+    terms = lines |> String.split("\n")
 
-		module = if predictive do
-			Autocompletex.Predictive
-		else
-			Autocompletex.Lexicographic
-		end
+    redis =
+      case Redix.start_link do
+        {:ok, redis} -> redis
+        {:error, {:already_started, redis}} -> redis
+      end
 
-		{:ok, _} = module.start_link(redis, :ac)
+    module = if predictive do
+      Autocompletex.Predictive
+    else
+      Autocompletex.Lexicographic
+    end
 
-		terms
-		|> Enum.map(&(module.upsert(:ac, [&1])))
+    module.start_link(redis, :ac)
 
-	end
+    terms
+    |> Enum.map(&(module.upsert(:ac, [&1])))
+
+  end
 end
