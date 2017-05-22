@@ -7,8 +7,8 @@ defmodule Autocompletex.Web.Predictive do
   plug :match
   plug :dispatch
 
-  get "/" do
-    conn |> send_resp(200, "predictive - :ok") |> halt
+  get "/ok" do
+    conn |> send_resp(200, ":ok") |> halt
   end
 
   get "/add" do
@@ -23,7 +23,7 @@ defmodule Autocompletex.Web.Predictive do
   get "/complete" do
     conn = conn |> fetch_query_params
     %{"term" => term} = conn.params
-    {:ok, result} = Autocompletex.Predictive.complete(Autocompletex.Predictive, [term], 5)
+    {:ok, result} = Autocompletex.Predictive.complete(Autocompletex.Predictive, term, 5)
     conn
     |> send_resp(200, Poison.encode!(result))
     |> halt

@@ -1,5 +1,6 @@
 # Autocompletex
 
+[![Coverage Status](https://coveralls.io/repos/github/rickyhan/autocompletex/badge.svg?branch=master)](https://coveralls.io/github/rickyhan/autocompletex?branch=master)
 [![Build Status](https://travis-ci.org/rickyhan/autocompletex.svg?branch=master)](https://travis-ci.org/rickyhan/autocompletex)
 ![hex.pm](https://img.shields.io/hexpm/v/autocompletex.svg)
 

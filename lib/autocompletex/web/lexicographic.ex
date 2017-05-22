@@ -7,7 +7,7 @@ defmodule Autocompletex.Web.Lexicographic do
   plug :match
   plug :dispatch
 
-  get "/" do
+  get "/ok" do
     conn |> send_resp(200, ":ok") |> halt
   end
 
