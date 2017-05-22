@@ -1,5 +1,4 @@
 # Autocompletex
-----
 
 ![hex.pm](https://img.shields.io/hexpm/v/autocompletex.svg)
 
@@ -16,7 +15,6 @@ There are two ways to run it:
 * GenServer
 
 ## Installation
---------
 
 Add the `:autocompletex` to your `mix.ecs` file:
 
@@ -38,17 +36,21 @@ Then, run mix deps.get in your shell to fetch the new dependency.
 
 
 ## Usage
---------
-
-Using `autocompletex` is very simple.
 
 ### Overview
 
-There are several ways to run it.
+Currently, two types of autocompletion is support:
+
+* Lexicographic
+* Predictive
+
+If you want to suggest another scheme, please post an issue.
+
+There are 3 ways to run it.
 
 1. Standalone HTTP service
-2. GenServer
-3. Supervisor tree
+2. Using a GenServer
+3. Supervision tree
 
 ### Manual
 
@@ -80,7 +82,7 @@ config :autocompletex,
   type: :lexicographic #:predictive
 ```
 
-Then you can simply call
+Then call
 
 ```elixir
 Autocompletex.Lexicographic.upsert(Autocompletex.Lexicographic, ["test", "example"])
@@ -94,7 +96,6 @@ complete -> /complete?term=te
 ```
 
 ## API
-----
 
 There are two functions: `upsert` and `complete`.
 
@@ -109,13 +110,12 @@ There are two functions: `upsert` and `complete`.
 ```
 
 ## Misc
-------
 
 If you have a list of user-generated search queries, you can use a mix task to index and provision the redis instance.
 
-Simply do: `mix autocompletex.import --filename [fname] [--predictive]`
+Simply do:
 
-`--predictive` is a boolean flag.
+`mix autocompletex.import --filename [path/to/file] [--predictive]`
 
 ## Docs
 
