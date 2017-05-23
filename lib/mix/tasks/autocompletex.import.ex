@@ -41,7 +41,7 @@ defmodule Mix.Tasks.Autocompletex.Import do
 
       {[filename: fname], _, _} ->
         {:ok, fname, false}
-      x ->
+      _x ->
         IO.puts "mix autocompletex.import --filename [path/to/file] [--predictive]"
         {:error}
     end

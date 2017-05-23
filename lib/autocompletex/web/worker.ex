@@ -10,7 +10,7 @@ defmodule Autocompletex.Web do
     end
   end
 
-  def init(opts) do
+  def init() do
     :ok
   end
 
