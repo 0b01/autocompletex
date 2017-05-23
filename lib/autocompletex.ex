@@ -33,7 +33,7 @@ defmodule Autocompletex do
  
   end
 
-  defp config(key, default \\ nil) do
+  defp config(key, default) do
     Application.get_env(:autocompletex, key, default)
   end
 

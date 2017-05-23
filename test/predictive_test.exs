@@ -18,6 +18,11 @@ defmodule AutocompletexPredictiveTest do
     {:ok, worker: worker, db_prefix: db_prefix, redis: conn}
   end
 
+  test "ping from predictive", state do
+    %{worker: worker} = state
+    assert {:ok, "PONG"} = Autocompletex.Predictive.ping(worker)
+  end
+
   test "insert a prefix string", state do
     %{worker: worker, redis: conn, db_prefix: db_prefix} = state
     :ok = upsert(worker, ["test", "example"])
@@ -26,10 +31,10 @@ defmodule AutocompletexPredictiveTest do
   end
 
   test "autocomplete a prefix", state do
-    %{worker: worker, redis: conn, db_prefix: db_prefix} = state
+    %{worker: worker, redis: conn} = state
     :ok = upsert(worker, ["test", "example"])
     assert complete(worker, "te") == {:ok, ["test"]}
-    assert complete(worker, "ex") == {:ok, ["example"]}
+    assert complete(worker, ["ex"]) == {:ok, ["example"]}
     Redix.command(conn, ["FLUSHALL"])
   end
 

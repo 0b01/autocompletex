@@ -21,7 +21,7 @@ defmodule AutocompletexInsertTest do
     %{worker: worker, redis: conn} = state
     :ok = insert(worker, ["test", "example"])
     assert complete(worker, "te") == {:ok, ["test"]}
-    assert complete(worker, "ex") == {:ok, ["example"]}
+    assert complete(worker, ["ex"]) == {:ok, ["example"]}
     Redix.command(conn, ["FLUSHALL"])
   end
 

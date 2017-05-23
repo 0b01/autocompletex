@@ -2,18 +2,17 @@ defmodule Mix.Tasks.Autocompletex.Import do
   use Mix.Task
 
   def run opts do
-    {:ok, fname, predictive} =  
-      case OptionParser.parse(opts, switches: [filename: :string, predictive: :boolean]) do
-        {[filename: fname, predictive: _], _, _} -> 
-          {:ok, fname, true}
+    case parse_args(opts) do
+      {:ok, fname, predictive} ->
+        process(fname, predictive)
+        {:ok, :imported}
+      {:error} ->
+        {:error, {:wrong_format, opts}}
+    end
 
-        {[filename: fname], _, _} ->
-          {:ok, fname, false}
-        x ->
-          IO.puts "mix autocompletex.import --filename [path/to/file] [--predictive]"
-          {:error, "wrong format"}
-      end
+  end
 
+  defp process fname, predictive do
     {:ok, lines} = File.read fname
     terms = lines |> String.split("\n")
 
@@ -33,6 +32,18 @@ defmodule Mix.Tasks.Autocompletex.Import do
 
     terms
     |> Enum.map(&(module.upsert(:ac, [&1])))
+  end
 
+  defp parse_args opts do
+    case OptionParser.parse(opts, switches: [filename: :string, predictive: :boolean]) do
+      {[filename: fname, predictive: _], _, _} -> 
+        {:ok, fname, true}
+
+      {[filename: fname], _, _} ->
+        {:ok, fname, false}
+      x ->
+        IO.puts "mix autocompletex.import --filename [path/to/file] [--predictive]"
+        {:error}
+    end
   end
 end

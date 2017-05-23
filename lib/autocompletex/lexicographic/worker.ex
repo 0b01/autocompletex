@@ -41,7 +41,7 @@ defmodule Autocompletex.Lexicographic do
   def handle_call({:complete, prefix, rangelen}, _from, state) do
     %{:redis => redis, :db => db} = state
     term = case prefix do
-      [h|t] -> h
+      [h|_t] -> h
       h -> h
     end
     case Redix.command(redis, ["ZRANK", db, term]) do

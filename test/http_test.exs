@@ -41,7 +41,7 @@ defmodule AutocompletexLexicographicHTTPTest do
 
   test "add term", state do
     %{worker: worker} = state
-    conn = conn(:get, "/add?term=test", "")
+    conn(:get, "/add?term=test", "")
            |> Lexicographic.call(@opts)
     conn = conn(:get, "/add?term=example", "")
            |> Lexicographic.call(@opts)
@@ -53,9 +53,8 @@ defmodule AutocompletexLexicographicHTTPTest do
     assert Autocompletex.Lexicographic.complete(worker, "ex") == {:ok, ["example"]}
   end
 
-  test "complete", state do
+  test "complete" do
     
-    %{worker: worker} = state
     conn = conn(:get, "/add?term=test", "")
            |> Lexicographic.call(@opts)
 
@@ -127,8 +126,8 @@ defmodule AutocompletexPredictiveHTTPTest do
 
   test "add term", state do
     %{worker: worker} = state
-    conn = conn(:get, "/add?term=test", "")
-           |> Predictive.call(@opts)
+    conn(:get, "/add?term=test", "")
+      |> Predictive.call(@opts)
     conn = conn(:get, "/add?term=example", "")
            |> Predictive.call(@opts)
 
@@ -139,9 +138,8 @@ defmodule AutocompletexPredictiveHTTPTest do
     assert Autocompletex.Predictive.complete(worker, "ex") == {:ok, ["example"]}
   end
 
-  test "complete", state do
-    
-    %{worker: worker} = state
+  test "complete" do
+
     conn = conn(:get, "/add?term=test", "")
            |> Predictive.call(@opts)
 
