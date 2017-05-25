@@ -52,14 +52,14 @@ defmodule Autocompletex.Lexicographic do
           {:ok, list} ->
             ret = list
               |> Enum.filter(
-                &(&1 |> String.last == "*" && 
+                &(&1 |> String.last == "*" &&
                   &1 |> String.starts_with?(prefix)))
               |> Enum.map(fn word -> String.slice(word, 0..-2) end)
             {:reply, {:ok, ret}, state}
           {:error, err} ->
             {:reply, {:error, err}, state}
         end
-      {:error, err} -> 
+      {:error, err} ->
         {:reply, {:error, err}, state}
     end
   end
@@ -67,7 +67,7 @@ defmodule Autocompletex.Lexicographic do
   def handle_call({:upsert, term}, _from, state) do
     %{:redis => redis, :db => db} = state
     term
-      |> Enum.each(fn t -> 
+      |> Enum.each(fn t ->
           case Redix.command(redis, ["ZRANK", db, t <> "*"]) do
             {:ok, _ } ->
               insertp(t, redis, db)

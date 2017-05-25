@@ -36,7 +36,7 @@ defmodule Mix.Tasks.Autocompletex.Import do
 
   defp parse_args opts do
     case OptionParser.parse(opts, switches: [filename: :string, predictive: :boolean]) do
-      {[filename: fname, predictive: _], _, _} -> 
+      {[filename: fname, predictive: _], _, _} ->
         {:ok, fname, true}
 
       {[filename: fname], _, _} ->

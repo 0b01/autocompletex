@@ -18,7 +18,7 @@ There are two ways to run it:
 
 ## Installation
 
-Add the `:autocompletex` to your `mix.ecs` file:
+Add the `:autocompletex` to your `mix.exs` file:
 
 ```elixir
 def deps do

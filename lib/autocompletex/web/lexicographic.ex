@@ -1,4 +1,4 @@
-defmodule Autocompletex.Web.Lexicographic do  
+defmodule Autocompletex.Web.Lexicographic do
   use Plug.Router
   require Logger
   import Plug.Conn
@@ -29,10 +29,10 @@ defmodule Autocompletex.Web.Lexicographic do
     |> halt
   end
 
-  match _ do  
+  match _ do
     conn
     |> send_resp(404, "Nothing here")
     |> halt
   end
 
-end  
+end
