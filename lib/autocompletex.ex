@@ -4,7 +4,7 @@ defmodule Autocompletex do
   def start _type, _args do
     import Supervisor.Spec, warn: false
     redix = worker(Redix, [[host: config(:redis_host, "localhost"), port: config(:redis_port, 6379)], [name: :autocomplete_redis]])
-    supervisor = 
+    supervisor =
       case config(:type, :lexicographic) do
         :lexicographic ->
           supervisor(Autocompletex.Lexicographic.Supervisor, [:autocomplete_redis])
@@ -20,7 +20,7 @@ defmodule Autocompletex do
           worker(Autocompletex.Web, [port: config(:http_port, 3000)]),
           supervisor
         ]
-      else 
+      else
         [
           redix,
           supervisor
@@ -30,7 +30,7 @@ defmodule Autocompletex do
     if config(:debug, false), do: :observer.start
 
     Supervisor.start_link(children, [name: @name, strategy: :one_for_one])
- 
+
   end
 
   defp config(key, default) do

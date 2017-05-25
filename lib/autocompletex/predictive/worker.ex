@@ -40,14 +40,14 @@ defmodule Autocompletex.Predictive do
     case Redix.command(redis, ["ZCARD", db_prefix <> ":" <> term]) do
       {:ok, 0} ->
         {:reply, {:ok, []}, state}
-      {:ok, _} -> 
+      {:ok, _} ->
         case Redix.command(redis, ["ZREVRANGEBYSCORE", db_prefix <> ":" <> term, rangelen, "0"]) do
           {:ok, list} ->
             {:reply, {:ok, list}, state}
           {:error, err} ->
             {:reply, {:error, err}, state}
         end
-      {:error, err} -> 
+      {:error, err} ->
         {:reply, {:error, err}, state}
     end
   end

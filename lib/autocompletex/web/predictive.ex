@@ -1,4 +1,4 @@
-defmodule Autocompletex.Web.Predictive do  
+defmodule Autocompletex.Web.Predictive do
   use Plug.Router
   require Logger
   import Plug.Conn
@@ -29,7 +29,7 @@ defmodule Autocompletex.Web.Predictive do
     |> halt
   end
 
-  match _ do  
+  match _ do
     conn
     |> send_resp(404, "Nothing here")
     |> halt

@@ -1,11 +1,11 @@
-defmodule Autocompletex.Web do  
+defmodule Autocompletex.Web do
 
   def start_link({:port, port}) do
     type = Application.get_env(:autocompletex, :type, :lexicographic)
     case type do
-      :lexicographic -> 
+      :lexicographic ->
         {:ok, _} = Plug.Adapters.Cowboy.http Autocompletex.Web.Lexicographic, [], port: port
-      :predictive -> 
+      :predictive ->
         {:ok, _} = Plug.Adapters.Cowboy.http Autocompletex.Web.Predictive, [], port: port
     end
   end
